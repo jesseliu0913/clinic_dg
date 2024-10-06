@@ -20,7 +20,7 @@
 
 ## Evaluation Metrics:
 
-### Model 1:
+### Case 1:
 - **ROUGE Scores**:
   - ROUGE-1: Precision = 0.7776, Recall = 0.6403, F1 = 0.7023
   - ROUGE-2: Precision = 0.5194, Recall = 0.4276, F1 = 0.4691
@@ -31,7 +31,7 @@
   - Recall = 0.8675
   - F1 = 0.8855
 
-### Model 2:
+### Case 2:
 - **ROUGE Scores**:
   - ROUGE-1: Precision = 0.9128, Recall = 0.7872, F1 = 0.8453
   - ROUGE-2: Precision = 0.7548, Recall = 0.6507, F1 = 0.6989
@@ -42,7 +42,7 @@
   - Recall = 0.8930
   - F1 = 0.9073
 
-### Model 3:
+### Case 3:
 - **ROUGE Scores**:
   - ROUGE-1: Precision = 0.7893, Recall = 0.8520, F1 = 0.8194
   - ROUGE-2: Precision = 0.6577, Recall = 0.7101, F1 = 0.6829
@@ -53,7 +53,7 @@
   - Recall = 0.9048
   - F1 = 0.9207
 
-### Model 4:
+### Case 4:
 - **ROUGE Scores**:
   - ROUGE-1: Precision = 0.8416, Recall = 0.8260, F1 = 0.8337
   - ROUGE-2: Precision = 0.7085, Recall = 0.6953, F1 = 0.7019
