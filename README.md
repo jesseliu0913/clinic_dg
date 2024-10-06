@@ -1,5 +1,15 @@
 # clinic_dg
 
+PIPELINE:
+Stage 1: Using the general question to retrieve the evidence list from the provided case report
+
+Stage 2: Generate the question or response for one or multiple pieces of evidence and combine them into a dialogue.
+
+Stage 3: combine the seperate dialogue into one. Until this step, all main information is extract from the case report
+
+Final: Order and polish the dialogue.
+
+
 ROUGE Scores: {'rouge1': Score(precision=0.7775510204081633, recall=0.6403361344537815, fmeasure=0.7023041474654378), 'rouge2': Score(precision=0.5194274028629857, recall=0.4276094276094276, fmeasure=0.46906740535549407), 'rougeL': Score(precision=0.6836734693877551, 
 recall=0.5630252100840336, fmeasure=0.6175115207373272)}
 
