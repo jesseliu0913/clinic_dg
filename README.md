@@ -1,39 +1,65 @@
-# clinic_dg
+# Clinic_DG
 
-PIPELINE:
-Stage 1: Using the general question to retrieve the evidence list from the provided case report
+## General Questions:
+- **Question**: Describe the patient's personal information.
+- **Question**: Describe the patient's experience.
+- **Question**: Did you notice any symptoms, such as a fever, cough, or respiratory issues?
+- **Question**: What does the imaging (only provide figure explanation here) suggest?
+- **Question**: What does the examination suggest?
+- **Question**: Are there any suggestions?
 
-Stage 2: Generate the question or response for one or multiple pieces of evidence and combine them into a dialogue.
+---
 
-Stage 3: combine the seperate dialogue into one. Until this step, all main information is extract from the case report
+## Pipeline:
+1. **Stage 1**: Use the general questions to retrieve the evidence list from the provided case report.
+2. **Stage 2**: Generate questions or responses for one or multiple pieces of evidence and combine them into a dialogue.
+3. **Stage 3**: Combine the separate dialogues into one. At this step, all the main information is extracted from the case report.
+4. **Final Stage**: Order and polish the dialogue.
 
-Final: Order and polish the dialogue.
+---
 
+## Evaluation Metrics:
 
-ROUGE Scores: {'rouge1': Score(precision=0.7775510204081633, recall=0.6403361344537815, fmeasure=0.7023041474654378), 'rouge2': Score(precision=0.5194274028629857, recall=0.4276094276094276, fmeasure=0.46906740535549407), 'rougeL': Score(precision=0.6836734693877551, 
-recall=0.5630252100840336, fmeasure=0.6175115207373272)}
+### Model 1:
+- **ROUGE Scores**:
+  - ROUGE-1: Precision = 0.7776, Recall = 0.6403, F1 = 0.7023
+  - ROUGE-2: Precision = 0.5194, Recall = 0.4276, F1 = 0.4691
+  - ROUGE-L: Precision = 0.6837, Recall = 0.5630, F1 = 0.6175
+- **BLEU Score**: 35.71
+- **BERTScore**:
+  - Precision = 0.9043
+  - Recall = 0.8675
+  - F1 = 0.8855
 
-BLEU Score: 35.71032676995603
+### Model 2:
+- **ROUGE Scores**:
+  - ROUGE-1: Precision = 0.9128, Recall = 0.7872, F1 = 0.8453
+  - ROUGE-2: Precision = 0.7548, Recall = 0.6507, F1 = 0.6989
+  - ROUGE-L: Precision = 0.8447, Recall = 0.7284, F1 = 0.7823
+- **BLEU Score**: 54.25
+- **BERTScore**:
+  - Precision = 0.9221
+  - Recall = 0.8930
+  - F1 = 0.9073
 
-BERTScore - Precision: 0.9043044447898865 Recall: 0.86748206615448 F1: 0.8855106234550476
+### Model 3:
+- **ROUGE Scores**:
+  - ROUGE-1: Precision = 0.7893, Recall = 0.8520, F1 = 0.8194
+  - ROUGE-2: Precision = 0.6577, Recall = 0.7101, F1 = 0.6829
+  - ROUGE-L: Precision = 0.7726, Recall = 0.8339, F1 = 0.8021
+- **BLEU Score**: 58.84
+- **BERTScore**:
+  - Precision = 0.9372
+  - Recall = 0.9048
+  - F1 = 0.9207
 
-
-ROUGE Scores: {'rouge1': Score(precision=0.9127659574468086, recall=0.7871559633027523, fmeasure=0.845320197044335), 'rouge2': Score(precision=0.7547974413646056, recall=0.6507352941176471, fmeasure=0.6989141164856861), 'rougeL': Score(precision=0.8446808510638298, recall=0.728440366972477, fmeasure=0.7822660098522167)}
-
-BLEU Score: 54.247457746069024
-
-BERTScore - Precision: 0.9221127033233643 Recall: 0.8929579257965088 F1: 0.907301127910614
-
-
-ROUGE Scores: {'rouge1': Score(precision=0.7892976588628763, recall=0.851985559566787, fmeasure=0.8194444444444444), 'rouge2': Score(precision=0.6577181208053692, recall=0.7101449275362319, fmeasure=0.6829268292682927), 'rougeL': Score(precision=0.7725752508361204, recall=0.8339350180505415, fmeasure=0.8020833333333334)}
-
-BLEU Score: 58.835939977161345
-
-BERTScore - Precision: 0.9371599555015564 Recall: 0.9048126935958862 F1: 0.920702338218689
-
-
-ROUGE Scores: {'rouge1': Score(precision=0.8416075650118203, recall=0.8259860788863109, fmeasure=0.8337236533957846), 'rouge2': Score(precision=0.7085308056872038, recall=0.6953488372093023, fmeasure=0.7018779342723005), 'rougeL': Score(precision=0.7966903073286052, recall=0.7819025522041764, fmeasure=0.7892271662763466)}
-
-BLEU Score: 59.285214262457345
-
-BERTScore - Precision: 0.9226124882698059 Recall: 0.9064506888389587 F1: 0.9144601821899414
+### Model 4:
+- **ROUGE Scores**:
+  - ROUGE-1: Precision = 0.8416, Recall = 0.8260, F1 = 0.8337
+  - ROUGE-2: Precision = 0.7085, Recall = 0.6953, F1 = 0.7019
+  - ROUGE-L: Precision = 0.7967, Recall = 0.7819, F1 = 0.7892
+- **BLEU Score**: 59.29
+- **BERTScore**:
+  - Precision = 0.9226
+  - Recall = 0.9065
+  - F1 = 0.9145
