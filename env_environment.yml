@@ -1,0 +1,5 @@
+name: aenv
+channels:
+  - defaults
+  - conda-forge
+prefix: /Users/liuzijie/opt/anaconda3/envs/aenv
