@@ -125,4 +125,9 @@ class TextProcessingTools:
 
     @staticmethod
     def generate_suggestions(qa_pairs):
-        return f"Doctor: {qa_pairs['6']['cleaned_answer']}\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns."
+        if "$No$" in qa_pairs['6']['cleaned_answer']:
+            suggestion = f"Doctor: {qa_pairs['6']['cleaned_answer']}\nPatient: Got it, Thanks!"
+        else:
+            suggestion = f"Doctor: {qa_pairs['6']['cleaned_answer']}\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns."
+        
+        return suggestion

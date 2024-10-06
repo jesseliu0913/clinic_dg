@@ -62,14 +62,14 @@ class MedicalDialogueProcessor:
                 clean_answer = [
                     token_answer if any(TextProcessingTools.is_continuous_match(token_answer, sent) 
                                       for sent in article_sentences)
-                    else TextProcessingTools.preprocess_text(token_answer) == '$No$' and token_answer or
+                    else "$No$" in token_answer and token_answer or
                         TextProcessingTools.best_match_rouge(token_answer, article_sentences)[0]
                     for token_answer in answer_sentences
                 ]
                 
                 self.clean_answer_dict[key][i] = {
-                    'question': question.strip(),
-                    'answer': answer.strip(),
+                    'question': question,
+                    'answer': answer,
                     'cleaned_answer': clean_answer
                 }
 
@@ -114,7 +114,7 @@ class MedicalDialogueProcessor:
                           patient_lst.append(best_sentence)
                       evidence_lst.append(patient_lst)
 
-                  elif idx in ["image", "examination"]:
+                  elif info in ["image", "examination"]:
                       doctor_lst = []
                       dialogue = disorder_dialog[key][info]
                       doctor_analysis = re.findall(r"\[(.*?)\]", dialogue)
@@ -176,6 +176,7 @@ class MedicalDialogueProcessor:
 processor = MedicalDialogueProcessor(
   "./input/case_report/test_optical.json"
   )
-# processor.generate_evidence()
-# processor.generate_dialogue()
-processor.eval_dialogue()
+processor.generate_evidence()
+processor.generate_dialogue()
+processor.reload_dialogue()
+# processor.eval_dialogue()
