@@ -7,11 +7,13 @@ Stage 3: Order and polish the dialogue.
 """
 import os
 import re
+import spacy
 import nltk
 from nltk.tokenize import sent_tokenize
 from DatasetTools import TextProcessingTools
 
 nltk.download('punkt')
+nlp = spacy.load('en_core_web_sm')
 
 class MedicalDialogueProcessor:
     def __init__(self, data_file: str):
@@ -22,6 +24,7 @@ class MedicalDialogueProcessor:
         self.clean_answer_dict = {}
         self.evidence_dict = {}
         self.dialog_dict = {}
+        self.text_process = TextProcessingTools()
 
     def generate_evidence(self):
         GENERAL_QUESTION = f"""
@@ -142,8 +145,7 @@ class MedicalDialogueProcessor:
         FINAL_POLISH = """
         Polish the following doctor-patient dialogue to make it sound more natural and consistent. Add conjunctions or filler words outside of the brackets to improve the flow, but ***do not change any words or symbols inside the brackets***. ***Keep the brackets as they are***. Additionally, add natural phrases before or after the bracketed content, maintaining the dialogue flow. Make sure the interaction between the patient and doctor is smooth and complete.
         """
-        # self._get_evidence_lst()
-
+        self._get_evidence_lst()
         polished_dialogue_dict = {}
         dialog_dict = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage2")}/{self.pub_id}_evident.json')
         for key in dialog_dict:
@@ -166,6 +168,111 @@ class MedicalDialogueProcessor:
 
         TextProcessingTools.save_json(f'./output/stage3/{self.pub_id}.json', polished_dialogue_dict)
     
+    def refine_dialogue(self):
+        import ast
+
+        refine_dialogue_dict = {}
+        dialogue = TextProcessingTools.load_json(f'./output/stage3/{self.pub_id}.json')
+
+        for case_key, case_value in dialogue.items():
+            refine_dialogue_dict[case_key] = {}
+            final_dialogue = ""
+            lines = case_value.strip().split('\n')
+            doctor_words = []
+            patient_words = []
+            doctor_regex = re.compile(r'^Doctor: (.*)$')
+            patient_regex = re.compile(r'^Patient: (.*)$')
+
+            for line in lines:
+                doc_match = doctor_regex.match(line)
+                pat_match = patient_regex.match(line)
+
+                if doc_match:
+                    words = str(doc_match.group(1))
+                    evidence_lst = re.findall(r'\[(.*?)\]', words)
+                    evidence_length = len(evidence_lst)
+                    if evidence_length > 1:
+                        CONNECT_PROMPT = f"""
+                            I have the following 4 sentences in a list that I want to connect in a natural, flowing order:
+                            ['The patient experienced sudden onset of shortness of breath.', 'The chest X-ray showed clear lungs.', 'She was started on bronchodilators and steroids to manage the symptoms.', 'Her condition improved significantly over the next 48 hours.']
+                            Could you provide 3 conjunction words to connect these sentences naturally? 
+                            The output should be in the format: [word1, word2, word3].
+                            Answers: [However, Therefore, As a result]
+
+                            I have the following {evidence_length} sentences in a list that I want to connect in a natural, flowing order:
+                            {evidence_lst}
+                            Could you provide {evidence_length - 1} conjunction words to connect these sentences naturally? 
+                            The output should be in the format: [word1, word2, word3].
+                            Answers:
+                            """
+                        answers = TextProcessingTools.gpt4_response(CONNECT_PROMPT)
+                        answer_list = ast.literal_eval(answers)
+
+                        assert len(answer_list) == (evidence_length - 1)
+
+                        connect_response = TextProcessingTools.replace_third_person_with_second_person(evidence_lst[0])
+                        for i in range(len(answer_list)):
+                            connect_response += f' {answer_list[i]}, {TextProcessingTools.replace_third_person_with_second_person(evidence_lst[i+1])}'
+
+                        final_dialogue += f"Doctor: {connect_response}\n"
+                    elif evidence_length == 1:
+                        polish_word = TextProcessingTools.replace_third_person_with_second_person(words)
+                        final_dialogue += f"Doctor: {polish_word}\n"
+                    else:
+                        final_dialogue += f"Doctor: {words}\n"
+                        
+                elif pat_match:
+                    words = pat_match.group(1)
+                    evidence_lst = re.findall(r'\[(.*?)\]', words)
+                    evidence_length = len(evidence_lst)
+                    if evidence_length > 1:
+                        CONNECT_PROMPT = f"""
+                            I have the following 4 sentences in a list that I want to connect in a natural, flowing order:
+                            ['The patient experienced sudden onset of shortness of breath.', 'The chest X-ray showed clear lungs.', 'She was started on bronchodilators and steroids to manage the symptoms.', 'Her condition improved significantly over the next 48 hours.']
+                            Could you provide 3 conjunction words to connect these sentences naturally? 
+                            The output should be in the format: [word1, word2, word3].
+                            Answers: [However, Therefore, As a result]
+
+                            I have the following {evidence_length} sentences in a list that I want to connect in a natural, flowing order:
+                            {evidence_lst}
+                            Could you provide {evidence_length - 1} conjunction words to connect these sentences naturally? 
+                            The output should be in the format: [word1, word2, word3].
+                            Answers:
+                            """
+                        answers = TextProcessingTools.gpt4_response(CONNECT_PROMPT)
+                        answer_list = ast.literal_eval(answers)
+
+                        assert len(answer_list) == (evidence_length - 1)
+
+                        connect_response = self.text_process.get_patient_answer(evidence_lst[0])
+                        for i in range(len(answer_list)):
+                            connect_response += f' {answer_list[i]}, {self.text_process.get_patient_answer(evidence_lst[i+1])}'
+
+                        final_dialogue += f"Patient: {connect_response}\n"
+
+                    elif evidence_length == 1:
+                        polish_word = self.text_process.get_patient_answer(words)
+                        final_dialogue += f"Patient: {polish_word}\n"
+                    else:
+                        final_dialogue += f"Patient: {words}\n"
+
+            refine_dialogue_dict[case_key] = final_dialogue
+        
+        TextProcessingTools.save_json(f'./output/final/{self.pub_id}.json', refine_dialogue_dict)
+                        
+        
+    def paraphrase_dialogue(self):
+        from nltk.corpus import wordnet as wn
+        from nltk.corpus import brown
+        from collections import Counter
+
+        nltk.download('wordnet', quiet=True)
+        nltk.download('omw-1.4', quiet=True)
+        nltk.download('brown', quiet=True)
+
+        word_freq = Counter(brown.words())
+
+
     def eval_dialogue(self):
         from rouge_score import rouge_scorer
         import sacrebleu
@@ -193,4 +300,5 @@ processor = MedicalDialogueProcessor(
 # processor.generate_evidence()
 # processor.generate_dialogue()
 # processor.reload_dialogue()
+processor.refine_dialogue()
 # processor.eval_dialogue()

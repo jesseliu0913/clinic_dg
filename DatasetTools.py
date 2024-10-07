@@ -1,14 +1,38 @@
 import os
 import re
 import json
+import spacy
+from nltk.corpus import wordnet as wn
+from nltk.corpus import brown
+from collections import Counter
 from typing import List, Tuple
 from nltk.tokenize import sent_tokenize
 from rouge_score import rouge_scorer
 from openai import OpenAI
 
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+nlp = spacy.load('en_core_web_sm')
+word_freq = Counter(brown.words())
 
 class TextProcessingTools:
+    def __init__(self):
+        self.pronoun_mapping = {
+                "he": "I",
+                "she": "I",
+                "him": "me",
+                "her": "me",
+                "his": "my",
+                "hers": "mine",
+                "himself": "myself",
+                "herself": "myself",
+                "they": "we",
+                "them": "us",
+                "their": "our",
+                "theirs": "ours",
+                "themselves": "ourselves",
+            }
+
     @staticmethod
     def preprocess_text(text: str) -> str:
         return re.sub(r'[^A-Za-z0-9]', '', text)
@@ -39,10 +63,13 @@ class TextProcessingTools:
         return best_sentence, best_score
 
     @staticmethod
-    def gpt4_response(prompt: str) -> str:
+    def gpt4_response(prompt: str, max_tokens=1000) -> str:
         try:
-            completion = client.chat.completions.create(model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}])
+            completion = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=max_tokens  
+                )
             return completion.choices[0].message.content
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -131,3 +158,126 @@ class TextProcessingTools:
             suggestion = f"Doctor: {qa_pairs['6']['cleaned_answer']}\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns."
         
         return suggestion
+
+    def replace_pronouns(self, text):
+        doc = nlp(text)
+        modified_tokens = []
+
+        for token in doc:
+            token_lower = token.text.lower()
+            if token_lower in self.pronoun_mapping:
+                new_token = self.pronoun_mapping[token_lower]
+                if token.text[0].isupper():
+                    new_token = new_token.capitalize()
+                modified_tokens.append(new_token)
+            else:
+                modified_tokens.append(token.text)
+
+        return " ".join(modified_tokens)
+
+    @staticmethod
+    def extract_main_components(text):
+        doc = nlp(text)
+        subjects = []
+        verbs = []
+        objects = []
+
+        for chunk in doc.noun_chunks:
+            if chunk.root.dep_ in ["nsubj", "nsubjpass"]:
+                subjects.append(chunk.text)
+
+        for token in doc:
+            if token.pos_ == "VERB":
+                aux_neg = [child for child in token.children if child.dep_ in ["aux", "neg", "advmod"]]
+                aux_neg = sorted(aux_neg, key=lambda x: x.i)
+                verb_tokens = aux_neg + [token]
+                verb_phrase = ' '.join([t.text for t in verb_tokens])
+                verbs.append(verb_phrase)
+
+        for chunk in doc.noun_chunks:
+            if chunk.root.dep_ in ["dobj", "pobj", "obj", "iobj"]:
+                objects.append(chunk.text)
+
+        return subjects, verbs, objects
+
+    @staticmethod
+    def is_time_related(phrase):
+        doc = nlp(phrase)
+        if any(ent.label_ in ["DATE", "TIME"] for ent in doc.ents):
+            return True
+        return bool(re.search(r'\d', phrase))
+
+    @staticmethod
+    def contains_number(phrase):
+        return bool(re.search(r'\d', phrase))
+
+    def substitute_if_infrequent(self, phrase, replaced_text, threshold=5):
+        words = phrase.split()
+        new_words = []
+        for word in words:
+            word_lower = word.lower()
+            if word_freq[word_lower] < threshold:
+                CONTEXT_PROMPT = f"""
+                Within the sentence '{replaced_text}' please replace the word 'bilateral' with an easier-to-understand synonym that has the same meaning, while maintaining the grammatical structure and word type. Only output the changed word.
+                Answer: two-side
+                Within the sentence '{replaced_text}' please replace the word '{word}' with an easier-to-understand synonym that has the same meaning, while maintaining the grammatical structure and word type. Only output the changed word.
+                Answer: 
+                """
+                replaced_word = self.gpt4_response(CONTEXT_PROMPT, 1)
+                new_words.append(replaced_word)
+            else:
+                new_words.append(word)
+        return ' '.join(new_words)
+
+    @staticmethod
+    def replace_phrases(sentence, phrase_mapping):
+        sorted_phrases = sorted(phrase_mapping.keys(), key=len, reverse=True)
+        escaped_phrases = [re.escape(phrase) for phrase in sorted_phrases]
+        pattern = re.compile(r'\b(' + '|'.join(escaped_phrases) + r')\b', flags=re.IGNORECASE)
+
+        def replace_match(match):
+            original_phrase = match.group(0)
+            for key in phrase_mapping:
+                if key.lower() == original_phrase.lower():
+                    return phrase_mapping[key]
+            return original_phrase
+
+        return pattern.sub(replace_match, sentence)
+
+    def get_patient_answer(self, text):
+        updated_objects = []
+
+        replaced_text = self.replace_pronouns(text)
+        subjects, verbs, objects = self.extract_main_components(replaced_text)
+
+        for obj in objects:
+            if self.is_time_related(obj) or self.contains_number(obj):
+                updated_objects.append(obj)
+            else:
+                updated_obj = self.substitute_if_infrequent(obj, replaced_text)
+                updated_objects.append(updated_obj)
+
+        phrase_mapping = dict(zip(objects, updated_objects))
+        updated_sentence = self.replace_phrases(replaced_text, phrase_mapping)
+
+        modified_sentence = re.sub(r'\((?![^)]*Figure)[^)]*\)', '', updated_sentence)
+        modified_sentence = re.sub(r'(?<!Figure)\*', '', modified_sentence)
+        modified_sentence = re.sub(r'\s+', ' ', modified_sentence).strip()
+        return modified_sentence.replace("[", "").replace("]", "").replace("‘$No$’", 'Nope').strip()
+
+    @staticmethod
+    def replace_third_person_with_second_person(text):
+        replacements = {
+            r"\bhe\b": "you", r"\bshe\b": "you", r"\bthey\b": "you",
+            r"\bhim\b": "you", r"\bher\b": "you", r"\bthem\b": "you",
+            r"\bhis\b": "your", r"\bhers\b": "yours", r"\btheir\b": "your",
+            r"\btheirs\b": "yours"
+        }
+
+        for key, value in replacements.items():
+            text = re.sub(key, value, text, flags=re.IGNORECASE)
+
+        modified_sentence = re.sub(r'\((?![^)]*Figure)[^)]*\)', '', text)
+        modified_sentence = re.sub(r'(?<!Figure)\*', '', modified_sentence)
+        modified_sentence = re.sub(r'\s+', ' ', modified_sentence).strip()
+        return modified_sentence.replace("[", "").replace("]", "").replace("‘$No$’", 'Nope').strip()
