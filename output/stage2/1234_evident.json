@@ -1,0 +1,118 @@
+{
+    "Case 1": {
+        "prefix": "\n        Doctor: Hi! How are you feeling today?\n        Patient: Hi, doctor. I’m feeling a bit better, but I still have some concerns.\n\n        Doctor: I see, Could you please share a little about yourself, and if you have any medical conditions or allergies?\n        Patient: ['A 36-year-old male doctor with no underlying medical illness or allergies was administered the first dose of the COVID-19 vaccine (Cominarty, BNT162b2, Pfizer-BioNTech) in a tertiary hospital in Malaysia.']\n        ",
+        "patient_experience": "Doctor: When did you first notice the symptoms related to your eyes?  \nPatient: [patient_experience_0]\n\nDoctor: Can you tell me more about how these eye symptoms progressed over time?  \nPatient: [patient_experience_1]\n\nDoctor: Did you experience any other symptoms accompanying your eye problems?  \nPatient: [patient_experience_2]\n\nDoctor: How has your left eye metamorphopsia been since the initial onset?  \nPatient: [patient_experience_3]\n\nDoctor: Did you make any decisions regarding your vaccination after relating the symptoms to it?  \nPatient: [patient_experience_4]",
+        "patient_symptoms": "Doctor: Have you experienced any pain, redness, or sensitivity to light in your eyes recently?\n\nPatient: [patient_symptoms_0]\n\nDoctor: Have you noticed any symptoms of a viral-like illness, such as a cough, or fever, either before or after your vaccination?\n\nPatient: [patient_symptoms_1]",
+        "image": "Doctor: [image_0]\n\nPatient: Oh, I wasn't aware of these specific details about my eye. What does this elevation at the fovea mean for my vision?\n\nDoctor: [image_1]\n\nPatient: That's good to hear that there's improvement. Will the remaining lesion on the OCT eventually go away too?",
+        "examination": "Doctor: [examination_0]\n\nPatient: That seems like a slight change in my vision. Does the low myopia or astigmatism affect me significantly?\n\nDoctor: [examination_1]\n\nPatient: I noticed some distortion with my left eye; is that what metamorphopsia is?\n\nDoctor: [examination_2]\n\nPatient: It's good to know there's no inflammation. Does that mean my eyes are generally healthy?\n\nDoctor: [examination_3]\n\nPatient: That sounds concerning. What does a raised elevation near the fovea indicate?\n\nDoctor: [examination_4]\n\nPatient: It sounds like there is some improvement, but what is a pigment epithelial defect, and should I be worried about it?",
+        "suggestion": "Doctor: ['$No$”']\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns.",
+        "evidence_list": [
+            [
+                "He claimed to have bilateral metamorphopsia with generalized body aches about 3 h postvaccination.",
+                "His myalgia and backache resolved after 1 day, and his right eye metamorphosia resolved after 3 days.",
+                "No viral-like illness or symptoms, such as cough, upper respiratory tract illness, or fever, were reported before or after his vaccination.",
+                "Although it was still present, the symptoms had reduced in intensity, and the visual acuity had improved to 6/6 OU.",
+                "We diagnosed his ocular symptoms as possibly vaccine-related, and our patient subsequently opted not to continue with the second dose of his vaccine."
+            ],
+            [
+                "There was no eye pain, redness, or photophobia in either eye.",
+                "No viral-like illness or symptoms, such as cough, upper respiratory tract illness, or fever, were reported before or after his vaccination."
+            ],
+            [
+                "There is left eye yellowish raised elevation and hyperautofluorescence at the fovea with dome-shaped elevation of the RPE at the fovea causing disruption of the ellipsoid zone.",
+                "(B) Fundus photograph, ocular coherence tomography (OCT), fundus fluorescein angiography (FFA) and indocyanine green angiography (ICGA) of the same patient at 15 days post vaccination showed improvement clinically."
+            ],
+            [
+                "The refractive assessment showed bilateral low myope of −0.75D and mild astigmatism of −0.25D in the left eye, with a normal amplitude of accommodation 7.5D OU.",
+                "Left-eye metamorphopsia was noted on the Amsler chart, mostly around the central and paracentral regions.",
+                "The anterior segment examination via slit lamp biomicroscopy was unremarkable.",
+                "Fundus examination of the left eye showed a well-circumscribed, yellowish-raised elevation superior to the fovea.",
+                "ICGA showed hypocyanescence at the corresponding area on the fovea, with a hypocyanescent area noted at the inferonasal vessel arcade in the venous phase."
+            ]
+        ]
+    },
+    "Case 2": {
+        "prefix": "\n        Doctor: Hi! How are you feeling today?\n        Patient: Hi, doctor. I’m feeling a bit better, but I still have some concerns.\n\n        Doctor: I see, Could you please share a little about yourself, and if you have any medical conditions or allergies?\n        Patient: ['A 68-year-old Malay man.']\n        ",
+        "patient_experience": "Doctor: Could you describe when you first experienced any issues with your vision after receiving the COVID-19 vaccination?\n\nPatient: [patient_experience_0]\n\nDoctor: Before the second dose, did you have any medical conditions or previous eye issues that might have contributed to this?\n\nPatient: [patient_experience_1]\n\nDoctor: After your first dose of the vaccine, did you notice any similar ocular symptoms or was this something new?\n\nPatient: [patient_experience_2]",
+        "patient_symptoms": "Doctor: Have you experienced any symptoms following your recent vaccination?  \nPatient: [patient_symptoms_0]",
+        "image": "Doctor: [image_0]  \nPatient: Oh, I see. So, there’s no sign of macular degeneration or myopic changes, but there are some issues with fluid and a defect?\n\nDoctor: [image_1]\nPatient: Thanks for explaining that. It’s good to know the intraretinal fluid is resolved, but I’m concerned about the subretinal fluid and the more defined fibrovascular PED.",
+        "examination": "Doctor: [examination_0]\n\nPatient: Okay, so my right eye isn't seeing as well as my left, and there's a lesion in the macula?\n\nDoctor: [examination_1]\n\nPatient: Yes, I understand. What does the lesion mean for my vision in the future?",
+        "suggestion": "Doctor: ['$No$\"']\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns.",
+        "evidence_list": [
+            [
+                "A 68-year-old Malay man presented with sudden-onset right-eye central blurring of vision 3 days after receiving his second dose of COVID-19 vaccination (Cominarty, BNT162b2, Pfizer-BioNTech).",
+                "He had no underlying medical illness and no significant past ocular history.",
+                "He did not have any ocular symptoms after his first dose of the vaccine."
+            ],
+            [
+                "$No$"
+            ],
+            [
+                "Ocular coherence tomography (Topcon Spectral Domain OCT) showed loss of foveal contour with the presence of intraretinal and subretinal fluid, and a fibrovascular pigment epithelial defect (Figure 2A).",
+                "OCT macula revealed resolution of intraretinal fluids; however, the subretinal fluid was similar in size and the fibrovascular PED was more defined (Figure 2B)."
+            ],
+            [
+                "His presenting visual acuity was 6/12 OD and 6/6 OS.",
+                "His presenting visual acuity was 6/12 OD and 6/6 OS."
+            ]
+        ]
+    },
+    "Case 3": {
+        "prefix": "\n        Doctor: Hi! How are you feeling today?\n        Patient: Hi, doctor. I’m feeling a bit better, but I still have some concerns.\n\n        Doctor: I see, Could you please share a little about yourself, and if you have any medical conditions or allergies?\n        Patient: ['A 50-year-old Malay woman with no underlying medical illness presented with bilateral blurring of vision 2 weeks after receiving her second dose of COVID-19 vaccination (Cominarty, BNT162b2, Pfizer-BioNTech).']\n        ",
+        "patient_experience": "Doctor: When did you first notice the symptoms related to your vision?  \nPatient: [patient_experience_0]\n\nDoctor: How was your visual acuity at that time?  \nPatient: [patient_experience_1]\n\nDoctor: Did you notice any changes upon your next medical review?  \nPatient: [patient_experience_2]\n\nDoctor: What treatment were you given, and how did it affect your symptoms?  \nPatient: [patient_experience_3]\n\nDoctor: How is your visual acuity and overall eye health now?  \nPatient: [patient_experience_4]",
+        "patient_symptoms": "Doctor: Are you currently experiencing any symptoms or discomfort related to your health?\n\nPatient: [patient_symptoms_0]",
+        "image": "Doctor: [image_0]\n\nPatient: That sounds concerning. What does that mean for my vision?\n\nDoctor: [image_1]\n\nPatient: That's a relief to hear. So the treatment is working well, right?",
+        "examination": "Doctor: [examination_0]\n\nPatient: That's good to hear. I was worried about possible inflammation.\n\nDoctor: [examination_1]\n\nPatient: That sounds concerning. What does that mean for my vision?\n\nDoctor: [examination_2]\n\nPatient: So, thankfully, that means my optic nerve is functioning properly, right?\n\nDoctor: [examination_3]\n\nPatient: I'm relieved to hear that nothing else seems to be out of the ordinary. What should be our next steps?",
+        "suggestion": "Doctor: ['A diagnosis of acute multifocal placoid pigment epitheliopathy was made based on clinical and investigational findings.\"']\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns.",
+        "evidence_list": [
+            [
+                "Her blurring of vision started 1 week after vaccination and did not improve over time.",
+                "Her visual acuity was 6/18 OD and 6/12 OS.",
+                "Upon subsequent review, her macula edema and placoid lesions resolved 4 days later.",
+                "A week after being given intravenous methylprednisolone, her symptoms resolved.",
+                "Her visual acuity was 6/6 OU, with no macula edema or placoid lesions seen both clinically and on ocular imaging (Figure 3B)."
+            ],
+            [
+                "$No$"
+            ],
+            [
+                "(A)Fundus photo and OCT macula showing bilateral placoid lesions in the choroid with macula edema on presentation.",
+                "(B)Fundus photo and OCT macula showing resolution of bilateral placoid lesions and macula edema one week post-treatment with intravenous methylprednisolone."
+            ],
+            [
+                "The anterior segment examination was unremarkable, with no evidence of anterior segment inflammation.",
+                "Posterior segment examination showed bilateral fibrinous placoid lesions in the choroid with severe inner and outer macula edema (Figure 3A).",
+                "Visual evoked potential and optic nerve conduction studies were normal.",
+                "The systemic examination was otherwise unremarkable."
+            ]
+        ]
+    },
+    "Case 4": {
+        "prefix": "\n        Doctor: Hi! How are you feeling today?\n        Patient: Hi, doctor. I’m feeling a bit better, but I still have some concerns.\n\n        Doctor: I see, Could you please share a little about yourself, and if you have any medical conditions or allergies?\n        Patient: ['A 32-year-old Malay woman who is a housewife with an underlying history of anxiety, panic disorder, and depression received her first dose of Oxford AstraZeneca ChAdOx1 COVID-19 vaccination.']\n        ",
+        "patient_experience": "Doctor: Can you tell me when you first started noticing symptoms related to your skin?\n\nPatient: [patient_experience_0]\n\nDoctor: How did your symptoms progress after the initial skin issues?\n\nPatient: [patient_experience_1]\n\nDoctor: Did you experience any other symptoms or changes following the redness and vision issues with your right eye?\n\nPatient: [patient_experience_2]",
+        "patient_symptoms": "Doctor: Have you experienced any symptoms such as fever, pain, or changes in your vision recently?  \nPatient: [patient_symptoms_0]",
+        "image": "Doctor: [image_0]\n\nPatient: So, does that mean everything is looking normal?",
+        "examination": "Doctor: [examination_0]  \nPatient: I've noticed the redness around my right eye, so that makes sense.  \n\nDoctor: [examination_1]  \nPatient: That's reassuring to hear that my cornea isn't affected.  \n\nDoctor: [examination_2]  \nPatient: I'm glad my eye pressure is normal, but what does the cell activity mean?  \n\nDoctor: [examination_3]  \nPatient: That's good to know there's no inflammation in the back part of my eye.  \n\nDoctor: [examination_4]  \nPatient: It's a relief that my left eye is just fine.",
+        "suggestion": "Doctor: ['She was treated for an underlying herpes zoster infection with right acute nongranulomatous anterior uveitis.', 'The diagnosis was made clinically.', 'She was treated with oral acyclovir at 800 mg five times a day, together with topical tobramycin at 0.3% and dexamethasone at 0.1% 4-hourly in her right eye.', 'Following treatment, the uveitis and skin lesions improved by two weeks and completely resolved at the 1-month follow-up.”']\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns.",
+        "evidence_list": [
+            [
+                "Two weeks after her vaccination, she developed multiple skin rashes, vesicles, and crusty lesions over the right side of her face, respecting the midline and involving the tip of the nose.",
+                "A week later, following the onset of the rash, she developed sudden-onset redness, itchiness, and mild blurring of vision in her right eye.",
+                "There was also right periorbital swelling, which resolved after 2 days."
+            ],
+            [
+                "$No$"
+            ],
+            [
+                "$No$"
+            ],
+            [
+                "An ocular examination showed the presence of a circumciliary injection in her right eye.",
+                "There was no evidence of cornea epithelial, stromal, or endothelial involvement.",
+                "The anterior chamber showed cell activity at 2+ with no keratic precipitates, hypopyons, or fibrinous reactions.",
+                "There was no evidence of posterior segment inflammation such as vitritis, retinitis, choroiditis, or vasculitis.",
+                "Examination of the left eye was normal."
+            ]
+        ]
+    }
+}

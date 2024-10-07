@@ -96,61 +96,75 @@ class MedicalDialogueProcessor:
 
         TextProcessingTools.save_json(f'{folder_path}/{self.pub_id}.json', self.dialog_dict)
     
-    def get_evidence_lst(self):
+    def _get_evidence_lst(self):
         disorder_dialog = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage2")}/{self.pub_id}.json')
         qa_pairs = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage1")}/{self.pub_id}.json')
 
         for key in list(disorder_dialog.keys()):
             evidence_lst = []
-            if "evidence_list" not in list(disorder_dialog[key].keys()):
-              for idx, info in enumerate(list(disorder_dialog[key].keys())):
-                  reference_sentences = qa_pairs[key][str(idx + 1)]['cleaned_answer']
-                  if info in ["patient_experience", "patient_symptoms"]:
-                      patient_lst = []
-                      dialogue = disorder_dialog[key][info]
-                      patient_responses = re.findall(r"\[(.*?)\]", dialogue)
-                      for idx, pr in enumerate(patient_responses):
-                          best_sentence, _ = TextProcessingTools.best_match_rouge(pr, reference_sentences)
-                          patient_lst.append(best_sentence)
-                      evidence_lst.append(patient_lst)
+            for idx in range(len(list(disorder_dialog[key].keys())) - 1):
+                info = list(disorder_dialog[key].keys())[idx]
+                reference_sentences = qa_pairs[key][str(idx + 1)]['cleaned_answer']
+                # evidence_lst.extend(reference_sentences)
+                if info in ["patient_experience", "patient_symptoms"]:
+                    patient_lst = []
+                    dialogue = disorder_dialog[key][info]
+                    patient_responses = re.findall(r"\[(.*?)\]", dialogue)
+                    for idx, pr in enumerate(patient_responses):
+                        best_sentence, _ = TextProcessingTools.best_match_rouge(pr, reference_sentences)
+                        dialogue = dialogue.replace(str(pr), f"{info}_{idx}")
+                        patient_lst.append(best_sentence)
+                    disorder_dialog[key][info] = dialogue
+                    evidence_lst.append(patient_lst)
 
-                  elif info in ["image", "examination"]:
-                      doctor_lst = []
-                      dialogue = disorder_dialog[key][info]
-                      doctor_analysis = re.findall(r"\[(.*?)\]", dialogue)
-                      for idx, da in enumerate(doctor_analysis):
-                          best_sentence, _ = TextProcessingTools.best_match_rouge(da, reference_sentences)
-                          doctor_lst.append(best_sentence)
-                      evidence_lst.append(doctor_lst)
-                      
-                  else:
-                      continue
+                elif info in ["image", "examination"]:
+                    doctor_lst = []
+                    dialogue = disorder_dialog[key][info]
+                    doctor_analysis = re.findall(r"\[(.*?)\]", dialogue)
+                    for idx, da in enumerate(doctor_analysis):
+                        best_sentence, _ = TextProcessingTools.best_match_rouge(da, reference_sentences)
+                        dialogue = dialogue.replace(str(da), f"{info}_{idx}")
+                        doctor_lst.append(best_sentence)
+                    disorder_dialog[key][info] = dialogue
+                    evidence_lst.append(doctor_lst)
+                    
+                else:
+                    continue
 
-                  disorder_dialog[key]['evidence_list'] = evidence_lst
+                disorder_dialog[key]['evidence_list'] = evidence_lst
 
 
         folder_path = os.path.join(self.answer_folder, "stage2")
-        TextProcessingTools.save_json(f'{folder_path}/{self.pub_id}.json', disorder_dialog)
+        TextProcessingTools.save_json(f'{folder_path}/{self.pub_id}_evident.json', disorder_dialog)
+    
 
     def reload_dialogue(self):
         FINAL_POLISH = """
-        Enhance the clarity and readability of my text by correcting grammatical errors and improving sentence structure. Do not add any new information or change the original meaning. When the dialogue feels unnatural, try to adjust the sentences outside of the brackets first before altering the sentences within them. I would prefer if the patient's language is not too technical. The dialogue should feel natural and consistent with real-world conversations.
+        Polish the following doctor-patient dialogue to make it sound more natural and consistent. Add conjunctions or filler words outside of the brackets to improve the flow, but ***do not change any words or symbols inside the brackets***. ***Keep the brackets as they are***. Additionally, add natural phrases before or after the bracketed content, maintaining the dialogue flow. Make sure the interaction between the patient and doctor is smooth and complete.
         """
-        self.get_evidence_lst()
-        final_dialogue_dict = {}
-        raw_dialogue_dict = {}
-        dialog_dict = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage2")}/{self.pub_id}.json')
+        # self._get_evidence_lst()
+
+        polished_dialogue_dict = {}
+        dialog_dict = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage2")}/{self.pub_id}_evident.json')
         for key in dialog_dict:
             case_dict = dialog_dict[key]
+            evidence_list = case_dict['evidence_list']
             dialog = ""
             for idx, info in enumerate(list(case_dict.keys())):
                 if info != "evidence_list":
                     dialog += case_dict[info]
-            final_dialogue_dict[key] = TextProcessingTools.gpt4_response(f"{FINAL_POLISH}\n\n{dialog}")
-            raw_dialogue_dict[key] = dialog
-        
-        TextProcessingTools.save_json(f'./output/final/{self.pub_id}.json', final_dialogue_dict)
-        TextProcessingTools.save_json(f'./output/stage3/{self.pub_id}.json', raw_dialogue_dict)
+
+            polished_dialogue = TextProcessingTools.gpt4_response(f"""{FINAL_POLISH}\n\n{dialog}""")
+            
+            for info_index, info in enumerate(["patient_experience", "patient_symptoms", "image", "examination"]):
+                for idx in range(len(evidence_list[info_index])):
+                    tag_name = f"{info}_{idx}"
+                    tag_info = evidence_list[info_index][idx]
+                    polished_dialogue = polished_dialogue.replace(tag_name, tag_info)  # update polished_dialogue
+
+            polished_dialogue_dict[key] = polished_dialogue
+
+        TextProcessingTools.save_json(f'./output/stage3/{self.pub_id}.json', polished_dialogue_dict)
     
     def eval_dialogue(self):
         from rouge_score import rouge_scorer
@@ -176,7 +190,7 @@ class MedicalDialogueProcessor:
 processor = MedicalDialogueProcessor(
   "./input/case_report/test_optical.json"
   )
-processor.generate_evidence()
-processor.generate_dialogue()
-processor.reload_dialogue()
+# processor.generate_evidence()
+# processor.generate_dialogue()
+# processor.reload_dialogue()
 # processor.eval_dialogue()

@@ -1,130 +1,174 @@
 import spacy
-import scispacy
-from scispacy.umls_linker import UmlsEntityLinker
-from nltk.corpus import wordnet
+import re
+import nltk
+from nltk.corpus import wordnet as wn
+from nltk.corpus import brown
+from collections import Counter
 
+nltk.download('wordnet', quiet=True)
+nltk.download('omw-1.4', quiet=True)
+nltk.download('brown', quiet=True)
 
-nlp = spacy.load("en_core_sci_sm")
-linker = UmlsEntityLinker(resolve_abbreviations=True)
-nlp.add_pipe(linker)
+nlp = spacy.load('en_core_web_sm')
 
-medical_simplifications = {
-    "cured": "healed",
-    "carefully follow": "follow closely",
-    "medication": "medicine",
-    "instructions": "advice"
+word_freq = Counter(brown.words())
+
+pronoun_mapping = {
+    "he": "I",
+    "she": "I",
+    "him": "me",
+    "her": "me",
+    "his": "my",
+    "hers": "mine",
+    "himself": "myself",
+    "herself": "myself",
+    "they": "we",
+    "them": "us",
+    "their": "our",
+    "theirs": "ours",
+    "themselves": "ourselves",
 }
 
+def replace_pronouns(text):
+    doc = nlp(text)
+    modified_tokens = []
 
-def get_pos_tags(doc):
-    return [(token.text, token.pos_) for token in doc]
-
-
-def get_syntactic_structure(doc):
-    subject = [chunk.text for chunk in doc.noun_chunks if chunk.root.dep_ == "nsubj"]
-    verbs = [token.text for token in doc if token.pos_ == "VERB"]
-    objects = [chunk.text for chunk in doc.noun_chunks if chunk.root.dep_ == "dobj"]
-    return subject, verbs, objects
-
-
-def get_synonym(word):
-    synonyms = wordnet.synsets(word)
-    if synonyms:
-        return synonyms[0].lemmas()[0].name()
-    return word
-
-def synonym_replacement(doc):
-    new_sentence = []
     for token in doc:
-        # Replace only adjectives, nouns, and verbs
-        if token.pos_ in {"ADJ", "NOUN", "VERB"}:
-            simplified_word = get_synonym(token.text.lower())
-            new_sentence.append(simplified_word)
+        token_lower = token.text.lower()
+        if token_lower in pronoun_mapping:
+            new_token = pronoun_mapping[token_lower]
+            if token.text[0].isupper():
+                new_token = new_token.capitalize()
+            modified_tokens.append(new_token)
         else:
-            new_sentence.append(token.text)
-    return " ".join(new_sentence)
+            modified_tokens.append(token.text)
 
+    return " ".join(modified_tokens)
 
-def get_umls_explanation(entity):
-    if entity._.umls_ents:
-        umls_concept_id = entity._.umls_ents[0][0]
-        concept = linker.umls.cui_to_entity[umls_concept_id]
-        return concept.name if len(concept.name) < 40 else concept.name.split(",")[0]
-    return entity.text
+def extract_main_components(text):
+    doc = nlp(text)
+    subjects = []
+    verbs = []
+    objects = []
 
-def replace_medical_terms_with_umls_explanations(doc):
-    new_sentence = []
-    current_index = 0
-    for entity in doc.ents:
-        new_sentence.append(doc.text[current_index:entity.start_char])
-        explanation = get_umls_explanation(entity)
-        new_sentence.append(explanation)
-        current_index = entity.end_char
-    new_sentence.append(doc.text[current_index:])
-    return "".join(new_sentence)
+    for chunk in doc.noun_chunks:
+        if chunk.root.dep_ in ["nsubj", "nsubjpass"]:
+            subjects.append(chunk.text)
 
-
-def simplify_sentence(doc):
-    new_sentence = []
     for token in doc:
-        if not token.is_stop:  
-            new_sentence.append(token.text)
-    return " ".join(new_sentence)
+        if token.pos_ == "VERB":
+            aux_neg = [child for child in token.children if child.dep_ in ["aux", "neg", "advmod"]]
+            aux_neg = sorted(aux_neg, key=lambda x: x.i)
+            verb_tokens = aux_neg + [token]
+            verb_phrase = ' '.join([t.text for t in verb_tokens])
+            verbs.append(verb_phrase)
 
+    for chunk in doc.noun_chunks:
+        if chunk.root.dep_ in ["dobj", "pobj", "obj", "iobj"]:
+            objects.append(chunk.text)
 
-def template_based_rewriting(subject, verbs, objects):
-    if subject and verbs and objects:
-        return f"{subject[0]} must {verbs[0]} the {objects[0]} and {verbs[1]} to heal completely."
-    return ""
+    return subjects, verbs, objects
 
+def is_time_related(phrase):
+    doc = nlp(phrase)
+    if any(ent.label_ in ["DATE", "TIME"] for ent in doc.ents):
+        return True
+    return bool(re.search(r'\d', phrase))
 
-def remove_redundancies(sentence):
-    return sentence.replace("completely heal", "heal")
+def contains_number(phrase):
+    return bool(re.search(r'\d', phrase))
 
+def substitute_if_infrequent(phrase, threshold=5):
+    words = phrase.split()
+    new_words = []
+    for word in words:
+        word_lower = word.lower()
+        if word_freq[word_lower] < threshold:
+            synsets = wn.synsets(word_lower)
+            if synsets:
+                synonym_found = False
+                for syn in synsets:
+                    for lemma in syn.lemmas():
+                        synonym = lemma.name().replace('_', ' ')
+                        if synonym.lower() != word_lower:
+                            new_words.append(synonym)
+                            synonym_found = True
+                            break
+                    if synonym_found:
+                        break
+                if not synonym_found:
+                    new_words.append(word)
+            else:
+                new_words.append(word)
+        else:
+            new_words.append(word)
+    return ' '.join(new_words)
 
-def process_sentence(sentence):
-    doc = nlp(sentence)
-    pos_tags = get_pos_tags(doc)
-    
-    subject, verbs, objects = get_syntactic_structure(doc)
-    
-    sentence_with_synonyms = synonym_replacement(doc)
-    
-    sentence_with_umls = replace_medical_terms_with_umls_explanations(doc)
-    
-    simplified_sentence = simplify_sentence(doc)
+def replace_phrases(sentence, phrase_mapping):
+    sorted_phrases = sorted(phrase_mapping.keys(), key=len, reverse=True)
+    escaped_phrases = [re.escape(phrase) for phrase in sorted_phrases]
+    pattern = re.compile(r'\b(' + '|'.join(escaped_phrases) + r')\b', flags=re.IGNORECASE)
 
-    rewritten_sentence = template_based_rewriting(subject, verbs, objects)
-    
-    final_sentence = remove_redundancies(rewritten_sentence)
-    
-    return {
-        "pos_tags": pos_tags,
-        "subject": subject,
-        "verbs": verbs,
-        "objects": objects,
-        "sentence_with_synonyms": sentence_with_synonyms,
-        "sentence_with_umls": sentence_with_umls,
-        "simplified_sentence": simplified_sentence,
-        "rewritten_sentence": rewritten_sentence,
-        "final_sentence": final_sentence
-    }
+    def replace_match(match):
+        original_phrase = match.group(0)
+        for key in phrase_mapping:
+            if key.lower() == original_phrase.lower():
+                return phrase_mapping[key]
+        return original_phrase
 
+    return pattern.sub(replace_match, sentence)
 
-sentence = (
-    "To be fully cured, the patient must regularly take the prescribed medication and carefully follow all of the doctor's instructions."
-)
+sentence_1 = "He presented to the ophthalmology clinic with left eye 10 days after vaccination."
+sentence_2 = "She will visit the hospital tomorrow at 3 PM."
+sentence_3 = "Prior to this episode, he did not have any ocular symptoms."
+sentence_4 = "He claimed to have bilateral metamorphopsia with generalized body aches about 3 h postvaccination."
 
+modified_sentence_1 = replace_pronouns(sentence_1)
+modified_sentence_2 = replace_pronouns(sentence_2)
+modified_sentence_3 = replace_pronouns(sentence_3)
+modified_sentence_4 = replace_pronouns(sentence_4)
 
-result = process_sentence(sentence)
+subjects_1, verbs_1, objects_1 = extract_main_components(modified_sentence_1)
+subjects_2, verbs_2, objects_2 = extract_main_components(modified_sentence_2)
+subjects_3, verbs_3, objects_3 = extract_main_components(modified_sentence_3)
+subjects_4, verbs_4, objects_4 = extract_main_components(modified_sentence_4)
 
+print("Modified Sentence 1:")
+print(modified_sentence_1)
+print("Subjects:", subjects_1)
+print("Verbs:", verbs_1)
+print("Objects:", objects_1)
 
-print("Tokenization and POS Tagging:", result["pos_tags"])
-print("Subject:", result["subject"])
-print("Verbs:", result["verbs"])
-print("Objects:", result["objects"])
-print("Synonym Replacement:", result["sentence_with_synonyms"])
-print("Medical Term Simplification:", result["sentence_with_umls"])
-print("Sentence Simplification:", result["simplified_sentence"])
-print("Template-based Rewriting:", result["rewritten_sentence"])
-print("Final Sentence (After Redundancy Removal):", result["final_sentence"])
+print("\nModified Sentence 2:")
+print(modified_sentence_2)
+print("Subjects:", subjects_2)
+print("Verbs:", verbs_2)
+print("Objects:", objects_2)
+
+print("\nModified Sentence 3:")
+print(modified_sentence_3)
+print("Subjects:", subjects_3)
+print("Verbs:", verbs_3)
+print("Objects:", objects_3)
+
+updated_objects = []
+for obj in objects_4:
+    if is_time_related(obj) or contains_number(obj):
+        updated_objects.append(obj)
+    else:
+        updated_obj = substitute_if_infrequent(obj)
+        updated_objects.append(updated_obj)
+        print(f"Original: {obj}, Updated: {updated_obj}")
+
+phrase_mapping = dict(zip(objects_4, updated_objects))
+
+updated_sentence_4 = replace_phrases(modified_sentence_4, phrase_mapping)
+
+print("\nModified Sentence 4:")
+print(modified_sentence_4)
+print("Subjects:", subjects_4)
+print("Verbs:", verbs_4)
+print("Objects:", objects_4)
+
+print("\nUpdated Sentence 4:")
+print(updated_sentence_4)
