@@ -12,19 +12,24 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from DatasetTools import TextProcessingTools
 
+
 nltk.download('punkt')
 nlp = spacy.load('en_core_web_sm')
 
 class MedicalDialogueProcessor:
-    def __init__(self, data_file: str):
+    def __init__(self, data_file: str, file_id: str):
         self.data_file = data_file
-        self.pub_id = "1234"
+        self.pub_id = file_id
         self.answer_folder = "./output"
         self.data = TextProcessingTools.load_json(self.data_file)
         self.clean_answer_dict = {}
         self.evidence_dict = {}
         self.dialog_dict = {}
         self.text_process = TextProcessingTools()
+        
+
+    def retrieve_diagnosis(self):
+
 
     def generate_evidence(self):
         GENERAL_QUESTION = f"""
