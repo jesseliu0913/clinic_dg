@@ -152,7 +152,7 @@ class TextProcessingTools:
 
     @staticmethod
     def generate_suggestions(qa_pairs):
-        if "$No$" in qa_pairs['6']['cleaned_answer']:
+        if "No" in qa_pairs['6']['cleaned_answer']:
             suggestion = f"Doctor: {qa_pairs['6']['cleaned_answer']}\nPatient: Got it, Thanks!"
         else:
             suggestion = f"Doctor: {qa_pairs['6']['cleaned_answer']}\nPatient: Will do. Thank you, doctor.\nDoctor: You're welcome. Take care, and don’t hesitate to reach out if you have any more concerns."
@@ -268,10 +268,9 @@ class TextProcessingTools:
     @staticmethod
     def replace_third_person_with_second_person(text):
         replacements = {
-            r"\bhe\b": "you", r"\bshe\b": "you", r"\bthey\b": "you",
-            r"\bhim\b": "you", r"\bher\b": "you", r"\bthem\b": "you",
-            r"\bhis\b": "your", r"\bhers\b": "yours", r"\btheir\b": "your",
-            r"\btheirs\b": "yours"
+            r"\bhe\b": "you", r"\bshe\b": "you",
+            r"\bhim\b": "you", r"\bher\b": "you", 
+            r"\bhis\b": "your", r"\bhers\b": "yours", 
         }
 
         for key, value in replacements.items():
