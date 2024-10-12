@@ -28,17 +28,16 @@ class MedicalDialogueProcessor:
         self.text_process = TextProcessingTools()
         
 
-    def retrieve_diagnosis(self):
-
-
     def generate_evidence(self):
         GENERAL_QUESTION = f"""
             Question: Describe the patient personal information.
             Question: Describe the patient experience.
             Question: Did you notice any symptoms, such as a fever, cough, or respiratory issues?
-            Question: What’s imaging (only provided the figure explanation here) suggest?
-            Question: What’s examination suggest? 
-            Question: Is any suggestions?
+            Question: What's the diagnosis?
+            Question: What's the direct evidence that points to this diagnosis?
+            Question: What’s the imaging (only provided the figure explanation here) suggest?
+            Question: What’s the examination suggest?
+            Question: Is there any suggestion?
 
             Please only output the complete sentences in the provided text that correspond to the above questions. You can list several sentences related to my query and classify which answer belongs to which query.
             Mention: Please do not miss any information in the provided text, and all of your answers should exactly match the provided text; do not change any symbols. 
@@ -50,42 +49,62 @@ class MedicalDialogueProcessor:
         
         
         for key, article_text in self.data.items():
-            user_prompt = f"{article_text}\n\n{GENERAL_QUESTION}"
-            evidence = TextProcessingTools.gpt4_response(user_prompt)
-            
-            self.evidence_dict[key] = {
-                'prompt': user_prompt,
-                'answer': evidence
-            }
-            
-        for key, value in self.evidence_dict.items():
-            answer_text = value['answer'].replace('*', '')
-            article_sentences = sent_tokenize(self.data[key])
-            
-            qa_pairs = re.findall(r'Question:(.*?)\nAnswer:(.*?)(?=\nQuestion:|\Z)', answer_text, re.DOTALL)
-            
-            self.clean_answer_dict[key] = {}
-            for i, (question, answer) in enumerate(qa_pairs, 1):
-                answer_sentences = sent_tokenize(answer.strip())
-                clean_answer = [
-                    token_answer if any(TextProcessingTools.is_continuous_match(token_answer, sent) 
-                                      for sent in article_sentences)
-                    else "$No$" in token_answer and token_answer or
-                        TextProcessingTools.best_match_rouge(token_answer, article_sentences)[0]
-                    for token_answer in answer_sentences
-                ]
+            if key.lower() != "case presentation":
+                user_prompt = f"{article_text}\n\n{GENERAL_QUESTION}"
+                evidence = TextProcessingTools.gpt4_response(user_prompt)
                 
-                self.clean_answer_dict[key][i] = {
-                    'question': question,
-                    'answer': answer,
-                    'cleaned_answer': clean_answer
+                self.evidence_dict[key] = {
+                    'prompt': user_prompt,
+                    'answer': evidence
                 }
 
+        if self.evidence_dict != []:
+            for key, value in self.evidence_dict.items():
+                answer_text = value['answer'].replace('*', '')
+                article_sentences = sent_tokenize(self.data[key])
+                
+                qa_pairs = re.findall(r'Question:(.*?)\nAnswer:(.*?)(?=\nQuestion:|\Z)', answer_text, re.DOTALL)
+                
+                self.clean_answer_dict[key] = {}
+                for i, (question, answer) in enumerate(qa_pairs, 1):
+                    answer_sentences = sent_tokenize(answer.strip())
+                    clean_answer = []
+                    clean_answer_idx = []
 
-        folder_path = os.path.join(self.answer_folder, "stage1")
-        os.makedirs(folder_path, exist_ok=True)
+                    for idx, token_answer in enumerate(answer_sentences):
+                        match_found = False
+                        for sent_idx, sent in enumerate(article_sentences):
+                            if TextProcessingTools.is_continuous_match(token_answer, sent):
+                                clean_answer.append(token_answer)
+                                clean_answer_idx.append(sent_idx)  
+                                match_found = True
+                                break
+                        if not match_found:
+                            if "$No$" in token_answer:
+                                clean_answer.append(token_answer)
+                                clean_answer_idx.append("$$")  
+                            else:
+                                best_match, sent_idx = TextProcessingTools.best_match_rouge(token_answer, article_sentences)
+                                clean_answer.append(best_match)
+                                clean_answer_idx.append(sent_idx) 
 
-        TextProcessingTools.save_json(f'{folder_path}/{self.pub_id}.json', self.clean_answer_dict)
+                    
+                    self.clean_answer_dict[key][i] = {
+                        'question': question,
+                        'answer': answer,
+                        'cleaned_answer': clean_answer,
+                        'cleaned_answer_idx': clean_answer_idx,
+                    }
+        
+
+
+            folder_path = os.path.join(self.answer_folder, "stage1")
+            os.makedirs(folder_path, exist_ok=True)
+
+            TextProcessingTools.save_json(f'{folder_path}/{self.pub_id}.json', self.clean_answer_dict)
+        
+        else:
+            print("No Case Report in this Article")
 
     def generate_dialogue(self):
         clean_answer_dict = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage1")}/{self.pub_id}.json')
@@ -299,11 +318,24 @@ class MedicalDialogueProcessor:
 
 
 
-processor = MedicalDialogueProcessor(
-  "./input/case_report/test_optical.json"
-  )
+input_files = os.listdir("./input/case_report/")
+output_files = os.listdir("./output/stage1/")
+output_files_lst = [output_file.split(".")[0] for output_file in output_files]
+count = 0
+for input_file in input_files:
+    file_id = input_file.split(".")[0]
+    if file_id not in output_files_lst:
+        processor = MedicalDialogueProcessor(
+        f"./input/case_report/{input_file}", file_id
+        )
+        processor.generate_evidence()
+        count += 1
+        if count == 100:
+            break
+
+
 # processor.generate_evidence()
 # processor.generate_dialogue()
 # processor.reload_dialogue()
-processor.refine_dialogue()
+# processor.refine_dialogue()
 # processor.eval_dialogue()

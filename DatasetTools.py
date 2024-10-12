@@ -52,7 +52,7 @@ class TextProcessingTools:
         best_score = 0
         best_sentence = None
 
-        for article_sentence in article_sentences:
+        for sent_idx, article_sentence in enumerate(article_sentences):
             scores = scorer.score(sentence, article_sentence)
             rouge_l_score = scores['rougeL'].fmeasure
 
@@ -60,7 +60,7 @@ class TextProcessingTools:
                 best_score = rouge_l_score
                 best_sentence = article_sentence
 
-        return best_sentence, best_score
+        return best_sentence, sent_idx
 
     @staticmethod
     def gpt4_response(prompt: str, max_tokens=1000) -> str:
