@@ -10,8 +10,8 @@ def get_case(file_content, file_id):
 
     for title in soup.find_all(['title']):
         case_title = title.get_text().lower()
-        if 'case' in case_title.lower():
-        # if re.search(r"case report", case_title, re.IGNORECASE) or re.search(r"case \d+", case_title, re.IGNORECASE):
+        # if 'case' in case_title.lower():
+        if re.search(r"case report", case_title, re.IGNORECASE) or re.search(r"case \d+", case_title, re.IGNORECASE):
             # print(case_title)
             paragraph = title.find_next('p')
             if paragraph:
