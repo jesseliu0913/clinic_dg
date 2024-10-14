@@ -12,6 +12,7 @@ import os
 import json
 
 
+
 FOLDER_PTAH = "./output/stage1/"
 init_files = os.listdir(FOLDER_PTAH)
 

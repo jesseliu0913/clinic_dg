@@ -12,7 +12,7 @@ from openai import OpenAI
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-nlp = spacy.load('en_core_web_sm')
+nlp = spacy.load('en_core_sci_sm')
 word_freq = Counter(brown.words())
 
 class TextProcessingTools:
