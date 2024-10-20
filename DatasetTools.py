@@ -2,6 +2,7 @@ import os
 import re
 import json
 import spacy
+import openai
 from nltk.corpus import wordnet as wn
 from nltk.corpus import brown
 from collections import Counter
@@ -61,6 +62,20 @@ class TextProcessingTools:
                 best_sentence = article_sentence
 
         return best_sentence, sent_idx
+    
+    @staticmethod
+    def gpt4_response_whistory(prompt: str, conversation_history: list, max_tokens=1000) -> str:
+        conversation_history.append({"role": "user", "content": prompt})
+        try:
+            completion = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=conversation_history,
+                    max_tokens=max_tokens  
+                )
+            return completion.choices[0].message.content
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
 
     @staticmethod
     def gpt4_response(prompt: str, max_tokens=1000) -> str:
