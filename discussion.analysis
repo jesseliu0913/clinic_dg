@@ -1,0 +1,2 @@
+/Users/liuzijie/opt/anaconda3/envs/dg/lib/python3.9/site-packages/spacy/language.py:2195: FutureWarning: Possible set union at position 6328
+  deserializers["tokenizer"] = lambda p: self.tokenizer.from_disk(  # type: ignore[union-attr]

@@ -52,6 +52,7 @@ class TextProcessingTools:
         scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
         best_score = 0
         best_sentence = None
+        best_idx = None
 
         for sent_idx, article_sentence in enumerate(article_sentences):
             scores = scorer.score(sentence, article_sentence)
@@ -60,11 +61,12 @@ class TextProcessingTools:
             if rouge_l_score > best_score:
                 best_score = rouge_l_score
                 best_sentence = article_sentence
+                best_idx = sent_idx
 
-        return best_sentence, sent_idx
+        return best_sentence, best_idx
     
     @staticmethod
-    def gpt4_response_whistory(prompt: str, conversation_history: list, max_tokens=1000) -> str:
+    def gpt4_response_whistory(prompt: str, conversation_history: list, max_tokens=10000) -> str:
         conversation_history.append({"role": "user", "content": prompt})
         try:
             completion = client.chat.completions.create(
@@ -78,7 +80,7 @@ class TextProcessingTools:
             return None
 
     @staticmethod
-    def gpt4_response(prompt: str, max_tokens=1000) -> str:
+    def gpt4_response(prompt: str, max_tokens=5000) -> str:
         try:
             completion = client.chat.completions.create(
                     model="gpt-4o",

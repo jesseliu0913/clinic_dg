@@ -1,3 +1,5 @@
 /input/*
 /output/*
+/log/*
+/pkl_files/*
 *.DS_Store

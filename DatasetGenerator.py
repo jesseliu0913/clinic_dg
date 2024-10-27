@@ -8,6 +8,7 @@ Stage 3: Order and polish the dialogue.
 import os
 import re
 import spacy
+import pickle
 import nltk
 from nltk.tokenize import sent_tokenize
 from DatasetTools import TextProcessingTools
@@ -47,9 +48,8 @@ class MedicalDialogueProcessor:
             I really appreciate it.
             """
         
-        
         for key, article_text in self.data.items():
-            if key.lower() != "case presentation":
+            if 'case' in key.lower() and len(key.split(" ")) < 4:
                 user_prompt = f"{article_text}\n\n{GENERAL_QUESTION}"
                 evidence = TextProcessingTools.gpt4_response(user_prompt)
                 
@@ -58,13 +58,13 @@ class MedicalDialogueProcessor:
                     'answer': evidence
                 }
 
-        if self.evidence_dict != []:
+        if self.evidence_dict != {}:
             for key, value in self.evidence_dict.items():
                 answer_text = value['answer'].replace('*', '')
-                article_sentences = sent_tokenize(self.data[key])
-                
-                qa_pairs = re.findall(r'Question:(.*?)\nAnswer:(.*?)(?=\nQuestion:|\Z)', answer_text, re.DOTALL)
-                
+                self.clean_answer_dict[key] = answer_text
+                # article_sentences = sent_tokenize(self.data[key]['content'])
+                # qa_pairs = re.findall(r'Question:(.*?)\nAnswer:(.*?)(?=\nQuestion:|\Z)', answer_text, re.DOTALL)
+                '''
                 self.clean_answer_dict[key] = {}
                 for i, (question, answer) in enumerate(qa_pairs, 1):
                     answer_sentences = sent_tokenize(answer.strip())
@@ -95,16 +95,17 @@ class MedicalDialogueProcessor:
                         'cleaned_answer': clean_answer,
                         'cleaned_answer_idx': clean_answer_idx,
                     }
-        
-
+                '''
 
             folder_path = os.path.join(self.answer_folder, "stage1")
             os.makedirs(folder_path, exist_ok=True)
 
             TextProcessingTools.save_json(f'{folder_path}/{self.pub_id}.json', self.clean_answer_dict)
-        
+            print(f"Success {self.pub_id}")
+            return "yes"
         else:
-            print("No Case Report in this Article")
+            # print("No Case Report in this Article")
+            return self.pub_id
 
     def generate_dialogue(self):
         clean_answer_dict = TextProcessingTools.load_json(f'{os.path.join(self.answer_folder, "stage1")}/{self.pub_id}.json')
@@ -318,21 +319,40 @@ class MedicalDialogueProcessor:
 
 
 
-input_files = os.listdir("./input/case_report/")
-output_files = os.listdir("./output/stage1/")
-output_files_lst = [output_file.split(".")[0] for output_file in output_files]
-count = 0
-for input_file in input_files:
-    file_id = input_file.split(".")[0]
-    if file_id not in output_files_lst:
-        processor = MedicalDialogueProcessor(
-        f"./input/case_report/{input_file}", file_id
-        )
-        processor.generate_evidence()
-        count += 1
-        if count == 500:
-            break
+# input_files = os.listdir("./input/full_report/")
+# input_files.reverse() 
+# output_files = os.listdir("./output/stage1/")
+# pid_files = os.listdir("./output/stage1_mc/")
 
+# output_files_lst = [output_file.split(".")[0] for output_file in output_files]
+# pid_lst = [pid_f.split(".")[0] for pid_f in pid_files]
+
+# with open('unqualified_2.pkl', 'rb') as file:
+#     unqualified_list = pickle.load(file)
+
+# unqualified_list = ['5385457', '9137060', '6277656', '9758034', '10477898', '7199548', '9264904', '3776570', '7501640', '7034452', '7099780', '9455203', '10769979', '5943106', '6935170', '6466908', '5829091', '9190750', '6834403', '10483363', '9777632', '7967652', '6372673', '3408286', '8019644', '9405108', '2910884', '5054737', '6683940', '6868814', '10907016', '9236448', '4364685', '4223596', '8844807', '5578354', '6589948', '10698862', '8262314', '10411822', '7517452', '4614822', '8547661', '8387889', '4231051', '5966531', '7878915', '3906152', '10659192', '6692717', '5837349', '9324652', '6023015', '9858533', '6548057', '10424280', '3039970', '9778251', '8354451', '4480246', '11049876', '6727397', '8052180', '4797186', '9859322', '2940776', '6434444', '5359445', '6380226', '10562628', '10673596', '4338407', '4972865', '9935731', '5590475', '6618132', '11068106', '4251168', '5278304', '9938787', '8105944', '10122526', '10570992', '7057081', '8929994', '10891437', '8818152', '6769743', '3429563', '5078930', '7067821', '7875809', '4246642', '5406054', '10629414', '3852713', '7141722', '7722305', '9601381', '10973880']
+
+
+# count = 0
+# re_pid_lst = []
+# for input_file in input_files:
+#     file_id = input_file.split(".")[0]
+#     if file_id in unqualified_list and file_id not in output_files_lst:
+#         processor = MedicalDialogueProcessor(
+#         f"./input/full_report/{input_file}", file_id
+#         )
+#         re_pid = processor.generate_evidence()
+#         if re_pid != "yes":
+#             re_pid_lst.append(re_pid) 
+#         else:
+#             count += 1
+#         if count == 1000:
+#             break
+# # import pickle
+# print(len(re_pid_lst))
+# print(re_pid_lst)
+# with open('unqualified_2.pkl', 'wb') as file:
+#     pickle.dump(re_pid_lst, file)
 
 # processor.generate_evidence()
 # processor.generate_dialogue()

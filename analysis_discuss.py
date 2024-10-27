@@ -7,6 +7,8 @@ INPUT_FOLDER = "./input/full_report/"
 DIAG_FOLDER = "./output/stage1_parse/"
 OUTPUT_FOLDER = "./output/stage1_mc/"
 diag_files = [f for f in os.listdir(DIAG_FOLDER) if not f.startswith('.')]
+dealed_files = [f for f in os.listdir(OUTPUT_FOLDER) if not f.startswith('.')]
+intersec_files = list(set(diag_files) - set(dealed_files))
 check_id = ['6307137', '7423352', '5871802', '9891022', '4310103', '9721246', '3166682', '10928238', '8684397', '3423792', '10681787', '9632708', '6007162', '5422748', '10147720', '7035542', '11170102', '7772758', '3023056', '3546909', '2801463', '4471381', '3778795', '9261154', '5096485', '10999433', '10448589', '10747629', '7857668', '5004014', '7513486', '7092767', '4531757', '6159050', '3796926']
 
 FIRST_QUERY = f"""
@@ -30,7 +32,7 @@ SECOND_QUERY = f"""
 Is there any other ruled-out diagnosis? Also in the same format.
 """
 
-for diag_f in diag_files:
+for diag_f in intersec_files:
     # print(diag_f)
     pid = diag_f.split(".")[0]
     if pid not in check_id:
@@ -63,11 +65,14 @@ for diag_f in diag_files:
                         case_lst.append(case_dict)
                     else:
                         check_id.append(pid)
-
+                        check_dict = {"pid": pid}
+                        with open(os.path.join(OUTPUT_FOLDER, f"check_dict.jsonl"), "a") as f_write: 
+                            f_write.write(json.dumps(check_dict) + '\n')
+                            
             if len(case_lst) != 0:
                 with open(os.path.join(OUTPUT_FOLDER, f"{pid}.jsonl"), "a") as jsonl_file: 
                     for item in case_lst:
                         jsonl_file.write(json.dumps(item) + '\n') 
-
+        
 
       

@@ -14,7 +14,7 @@ import json
 from DatasetTools import TextProcessingTools
 
 
-INPUT_FOLDER = "./output/stage1"
+INPUT_FOLDER = "./output/stage1_output"
 OUTPUT_FOLDER = "./output/stage1_parse"
 input_files = [f for f in os.listdir(INPUT_FOLDER) if not f.startswith('.')]
 
@@ -27,13 +27,14 @@ file_content = json.load(open(os.path.join(INPUT_FOLDER, input_f), "r"))
 if file_content != {}:
   add_dict = {}
   for case_key, case in file_content.items():
-      if case != {} and case['4']['cleaned_answer_idx'] != ['$$'] and case['4']['cleaned_answer_idx'] not in ([0], [1]):
+    diagnoise_flag = case['3']['cleaned_answer_idx'][0]
+    if case != {} and case['3']['cleaned_answer_idx'] != ['$$'] and case['3']['cleaned_answer_idx'] not in ([0], [1]):
           add_dict[case_key] = case
 
-          diagnoise_sentence = " ".join(case['4']['cleaned_answer'])
+          diagnoise_sentence = " ".join(case['3']['cleaned_answer'])
           sym2dia_prompt = f"Extract only the diagnosis noun(s) from the following sentence:{diagnoise_sentence}"
-          diagnoise_response = TextProcessingTools.gpt4_response(sym2dia_prompt)
-          diagnoise_flag = case['4']['cleaned_answer_idx'][0]
+        #   diagnoise_response = TextProcessingTools.gpt4_response(sym2dia_prompt)
+          diagnoise_response = "1111"
 
           combined_sentences = []
           multi_round_sentence1 = []
@@ -45,11 +46,11 @@ if file_content != {}:
                       if case['4']['cleaned_answer'][0] in sentence:
                           sentence = sentence.replace(case['4']['cleaned_answer'][0], "<?>")
 
-                      if q_key in ['1', '2', '3']:  
+                      if q_key in ['1', '2', '0']:  
                           multi_round_sentence1.append((idx, sentence))
-                      elif q_key in ['5', '6', '7']:  
+                      elif q_key in ['5', '6', '4']:  
                           multi_round_sentence2.append((idx, sentence))
-                      if q_key not in ['8', '4']:  
+                      if q_key not in ['7', '3']:  
                           combined_sentences.append((idx, sentence))
 
 
@@ -93,11 +94,11 @@ if file_content != {}:
               )
 
           multiround_dict['groundtruth'] = diagnoise_response
-          multiround_dict['evidence'] = case['4']['cleaned_answer']
+          multiround_dict['evidence'] = case['2']['cleaned_answer']
 
           add_dict[case_key]['oneround_dict'] = oneround_dict
           add_dict[case_key]['multiround_dict'] = multiround_dict
-      else:
+    else:
           add_dict[case_key] = {}
   
   if not has_only_empty_dict(add_dict):

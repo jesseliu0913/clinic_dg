@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-pid = "4869430"
+pid = "6447811"
 with open(f'./input/PMC_patient_data/{pid}.xml', 'r', encoding='utf-8') as file:
     xml_content = file.read()
 
